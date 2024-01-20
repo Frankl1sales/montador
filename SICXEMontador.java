@@ -29,7 +29,7 @@ public class SICXEMontador {
         OPTAB.put("STA", "0C");
         OPTAB.put("ADD", "18");
         
-        // ... adicione mais instruções conforme necessário
+        // ... adicione mais instruções 
     }
 
     private static void firstPass(String inputFile) {
