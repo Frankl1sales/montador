@@ -169,12 +169,11 @@ public class SICXEMontador {
             System.out.println("Opcode: " + opcode);
             System.out.println("Label: " + label);
             System.out.println("Address: " + Integer.toHexString(address));
-
+ 
             // Escrever a saída no arquivo
             try {
-                writer.write("Opcode: " + opcode + "\n");
-                writer.write("Label: " + label + "\n");
-                writer.write("Address: " + Integer.toHexString(address) + "\n");
+                writer.write(" " + opcode + Integer.toHexString(address));
+                writer.write(" Opcode: " + operationOrLabel + " Label: " + label + "\n");
             } catch (IOException e) {
                 e.printStackTrace();
             }
