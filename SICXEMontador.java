@@ -1,5 +1,7 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,8 +19,11 @@ public class SICXEMontador {
 
     public static void main(String[] args) {
         initializeOPTAB();
-        firstPass("programa.txt"); // Primeira passagem com o arquivo de entrada
-        secondPass("programa.txt"); // Segunda passagem
+        String inputFile = "programa.txt";
+        String intermediateFile = "intermediate.txt";
+        
+        firstPass(inputFile, intermediateFile); // Primeira passagem com o arquivo de entrada
+        secondPass(intermediateFile, "saida.txt"); // Segunda passagem
         System.out.println("Processamento concluído com sucesso.");
     
     }
@@ -32,18 +37,24 @@ public class SICXEMontador {
         // ... adicione mais instruções 
     }
 
-    private static void firstPass(String inputFile) {
+    private static void firstPass(String inputFile, String intermediateFile) {
         // Simulação da primeira passagem
         // Leitura do código-fonte e construção da tabela de símbolos
 
         // Leia o código-fonte e processe cada linha
         // Atualize a tabela de símbolos conforme necessário
-        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                // Processar a linha e atualizar a tabela de símbolos conforme necessário
-                processLine(line);
-            }
+        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+         BufferedWriter writer = new BufferedWriter(new FileWriter(intermediateFile))) {
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            // Processar a linha e atualizar a tabela de símbolos conforme necessário
+            processLine(line);
+            
+            // Escrever a linha processada no arquivo intermediário
+            writer.write(line);
+            writer.newLine();
+        }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -100,19 +111,21 @@ public class SICXEMontador {
     }
     }
 
-    private static void secondPass(String inputFile) {
+    private static void secondPass(String intermediateFile, String outputFile) {
         System.out.println("ooooooooi");
-        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(intermediateFile));
+             BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
+
             String line;
             while ((line = reader.readLine()) != null) {
-                processSecondPassLine(line);
+                processSecondPassLine(line, writer);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
     
-    private static void processSecondPassLine(String line) {
+    private static void processSecondPassLine(String line, BufferedWriter writer) {
         // Lógica para processar cada linha do código-fonte durante a segunda passagem
         // Utilize a tabela de códigos de operação (OPTAB) e a tabela de símbolos (SYMBOL_TABLE)
         String[] tokens = line.trim().split("\\s+");
@@ -149,18 +162,25 @@ public class SICXEMontador {
         String label = (tokens.length > 1 && !tokens[1].isEmpty()) ? tokens[1] : null;
         Integer address = (label != null) ? SYMBOL_TABLE.get(label) : null;
     
-        // Gerar código de máquina
-        if (opcode != null) {
+         // Gerar código de máquina
+         if (opcode != null) {
             // Aqui você pode processar a instrução e gerar o código de máquina
             // Utilize opcode, label (se houver) e endereço associado ao rótulo (se houver)
             System.out.println("Opcode: " + opcode);
             System.out.println("Label: " + label);
             System.out.println("Address: " + Integer.toHexString(address));
+
+            // Escrever a saída no arquivo
+            try {
+                writer.write("Opcode: " + opcode + "\n");
+                writer.write("Label: " + label + "\n");
+                writer.write("Address: " + Integer.toHexString(address) + "\n");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         } else {
             // Mensagem de erro se a instrução não estiver na tabela de códigos de operação
             System.err.println("Erro: Instrução não reconhecida - " + operationOrLabel);
         }
     }
-    
 }
-

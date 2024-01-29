@@ -1,0 +1,9 @@
+Opcode: 00
+Label: NUM1
+Address: c09
+Opcode: 18
+Label: NUM2
+Address: c0a
+Opcode: 0C
+Label: RESULT
+Address: c0b
