@@ -33,7 +33,12 @@ public class SICXEMontador {
         OPTAB.put("LDA", "00");
         OPTAB.put("STA", "0C");
         OPTAB.put("ADD", "18");
-        
+        OPTAB.put("SUB", "1C");
+        OPTAB.put("MUL", "20");
+        OPTAB.put("DIV", "24");
+        OPTAB.put("JUMP", "28");
+        OPTAB.put("JZ", "30");
+            
         // ... adicione mais instruções 
     }
 
@@ -58,57 +63,63 @@ public class SICXEMontador {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
+
     private static void processLine(String line) {
-        // Lógica para processar cada linha do código-fonte
-        // Atualize a tabela de símbolos conforme necessário
-        // Exemplo: Identificar diretivas START, RES, etc.
-        // Remover espaços extras e dividir a linha em partes
-    String[] tokens = line.trim().split("\\s+");
+            // Lógica para processar cada linha do código-fonte
+            // Atualize a tabela de símbolos conforme necessário
+            // Exemplo: Identificar diretivas START, RES, etc.
+            // Remover espaços extras e dividir a linha em partes
+        String[] tokens = line.trim().split("\\s+");
 
-    // Verificar se a linha está vazia ou é um comentário
-    if (tokens.length == 0 || tokens[0].startsWith(".")) {
-        // Ignorar linhas vazias ou comentários
-        return;
-    }
+        // Verificar se a linha está vazia ou é um comentário
+        if (tokens.length == 0 || tokens[0].startsWith(".")) {
+            // Ignorar linhas vazias ou comentários
+            return;
+        }
 
-    // Obter o primeiro token que representa a operação ou rótulo
-    String operationOrLabel = tokens[0].toUpperCase();
+        // Obter o primeiro token que representa a operação ou rótulo
+        String operationOrLabel = tokens[0].toUpperCase();
 
-    // Verificar se a linha contém uma diretiva START
-    if ("START".equals(operationOrLabel)) {
-        // Exemplo de processamento da diretiva START
-        // Atualizar o valor de LOCCTR conforme necessário
-        LOCCTR = Integer.parseInt(tokens[1], 16);
-        System.out.println(operationOrLabel + " inicio");System.out.println(LOCCTR);
+        // Verificar se a linha contém uma diretiva START
+        if ("START".equals(operationOrLabel)) {
+            // Exemplo de processamento da diretiva START
+            // Atualizar o valor de LOCCTR conforme necessário
+            LOCCTR = Integer.parseInt(tokens[1], 16);
+            System.out.println(operationOrLabel + " inicio");System.out.println(LOCCTR);
 
-    } else if ("RES".equals(operationOrLabel)) {
-        // Exemplo de processamento da diretiva RES
-        // Atualizar a tabela de símbolos com o rótulo e seu valor
-        String label = tokens[1];
-        int length = Integer.parseInt(tokens[2]);
-        SYMBOL_TABLE.put(label, LOCCTR);
-        LOCCTR += length;
-        System.out.println(label + " label"); System.out.println(LOCCTR); 
+        } else if ("RES".equals(operationOrLabel)) {
+            // Exemplo de processamento da diretiva RES
+            // Atualizar a tabela de símbolos com o rótulo e seu valor
+            String label = tokens[1];
+            int length = Integer.parseInt(tokens[2]);
+            SYMBOL_TABLE.put(label, LOCCTR);
+            LOCCTR += length;
+            System.out.println(label + " label"); System.out.println(LOCCTR); 
 
-    } else if ("LDA".equals(operationOrLabel) || "ADD".equals(operationOrLabel) || "STA".equals(operationOrLabel) || "END".equals(operationOrLabel)){
-        // Exemplo de processamento de uma instrução normal
-        // Atualizar LOCCTR com base no formato da instrução (pode variar)
+        } else if ("LDA".equals(operationOrLabel) || "STA".equals(operationOrLabel)
+        || "JUMP".equals(operationOrLabel) || "JZ".equals(operationOrLabel)) {
+        // Exemplo de processamento de uma instrução normal com um operando
         LOCCTR += 3; // Tamanho padrão para instruções
         System.out.println(operationOrLabel + " operation"); System.out.println(LOCCTR); 
 
-    } else {
-        // A linha contém uma instrução normal (lABEL + RES + 1)
-        // Atualizar a tabela de símbolos com o rótulo e seu valor
+        } else if ("ADD".equals(operationOrLabel)
+        || "SUB".equals(operationOrLabel) || "MUL".equals(operationOrLabel) || "DIV".equals(operationOrLabel)) {
+            // Exemplo de processamento de uma instrução com dois operandos
+            LOCCTR += 4; // Ajuste o tamanho conforme necessário
+            System.out.println(operationOrLabel + " operation with two operands"); 
+        
+        } else {
+            // A linha contém uma instrução normal (lABEL + RES + 1)
+            // Atualizar a tabela de símbolos com o rótulo e seu valor
 
-        if (!operationOrLabel.isEmpty()) {
-            SYMBOL_TABLE.put(operationOrLabel, LOCCTR);
+            if (!operationOrLabel.isEmpty()) {
+                SYMBOL_TABLE.put(operationOrLabel, LOCCTR);
+            }
+            // Atualizar LOCCTR com base no formato da instrução 
+            LOCCTR += 2; // Tamanho padrão para instruções
+            System.out.println(operationOrLabel + " label"); System.out.println(LOCCTR); 
         }
-        // Atualizar LOCCTR com base no formato da instrução (pode variar)
-        LOCCTR += 2; // Tamanho padrão para instruções
-        System.out.println(operationOrLabel + " label"); System.out.println(LOCCTR); 
-    }
     }
 
     private static void secondPass(String intermediateFile, String outputFile) {
@@ -162,18 +173,43 @@ public class SICXEMontador {
         String label = (tokens.length > 1 && !tokens[1].isEmpty()) ? tokens[1] : null;
         Integer address = (label != null) ? SYMBOL_TABLE.get(label) : null;
     
-         // Gerar código de máquina
-         if (opcode != null) {
+        // Gerar código de máquina
+        if (opcode != null) {
             // Aqui você pode processar a instrução e gerar o código de máquina
             // Utilize opcode, label (se houver) e endereço associado ao rótulo (se houver)
             System.out.println("Opcode: " + opcode);
             System.out.println("Label: " + label);
             System.out.println("Address: " + Integer.toHexString(address));
- 
+    
             // Escrever a saída no arquivo
             try {
-                writer.write(" " + opcode + Integer.toHexString(address));
-                writer.write(" Opcode: " + operationOrLabel + " Label: " + label + "\n");
+                writer.write(" " + opcode);
+    
+                // Verificar se há dois operandos na instrução
+                if (tokens.length > 2) {
+                    String operand1 = tokens[1].trim();
+                    String operand2 = tokens[2].trim();
+    
+                    Integer address1 = SYMBOL_TABLE.get(operand1);
+                    Integer address2 = SYMBOL_TABLE.get(operand2);
+    
+                    if (address1 != null && address2 != null) {
+                        // Ambos os operandos são rótulos válidos na tabela de símbolos
+                        // Adicione os endereços dos operandos ao arquivo
+                        writer.write(Integer.toHexString(address1));
+                        writer.write("|"+Integer.toHexString(address2));
+                        writer.write(" Operação com dois operandos");
+                    } else {
+                        // Pode ser necessário tratar o caso em que um ou ambos os operandos não estão na tabela
+                        System.err.println("Erro: Operandos inválidos - " + operand1 + ", " + operand2);
+                    }
+                } else {
+                    // Se não há dois operandos, adicione apenas o endereço do rótulo
+                    writer.write(Integer.toHexString(address));
+                    writer.write(" Opcode: " + operationOrLabel + " Label: " + label );
+                }
+    
+                writer.newLine();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -182,4 +218,6 @@ public class SICXEMontador {
             System.err.println("Erro: Instrução não reconhecida - " + operationOrLabel);
         }
     }
+
 }
+    
